@@ -222,7 +222,10 @@ async function respond(ctxKey, userKey, rawText) {
       `\nผู้ใช้: ${text}\nน้องสไลม์:`;
 
     let out = await askGemma(prompt);
-    if (!out) return "น้องสไลม์งงนิดหน่อย ลองพิมพ์ใหม่อีกครั้งน้า~ 🟢";
+    if (!out) {
+      console.error("[AI] ❌ โมเดลตอบว่าง -> ไม่ตอบกลับ");
+      return null;
+    }
     if (out.includes("[BLOCKED]")) return BLOCK_MSG;
 
     const h = history.get(ctxKey) ?? [];
@@ -230,8 +233,8 @@ async function respond(ctxKey, userKey, rawText) {
     history.set(ctxKey, h.slice(-HISTORY_TURNS));
     return out;
   } catch (e) {
-    console.error(e);
-    return "น้องสไลม์เหนียวหนืดไปหน่อย ลองใหม่อีกครั้งน้า~ 🟢";
+    console.error(`[AI] ❌ Failed: ${e.message} -> ไม่ตอบกลับ`);
+    return null;
   }
 }
 
@@ -246,7 +249,8 @@ if (DISCORD_TOKEN) {
     partials: [Partials.Channel],
   });
 
-  client.once("clientReady", () => console.log(`Discord พร้อม: ${client.user.tag}`));
+  client.once("clientReady", () => console.log(`[Discord] ✅ เชื่อมต่อสำเร็จ: ${client.user.tag}`));
+  client.on("error", (e) => console.error("[Discord] ❌ Error:", e.message));
 
   client.on("messageCreate", async (m) => {
     if (m.author.bot) return;
@@ -258,13 +262,16 @@ if (DISCORD_TOKEN) {
     try {
       await m.channel.sendTyping();
       const reply = await respond(`dc:${m.channelId}`, `dc:${m.author.id}`, text);
+      if (reply == null) return; // AI ล้มเหลว ไม่ตอบ
       await m.reply({ content: reply.slice(0, 1900), allowedMentions: { repliedUser: false } });
     } catch (e) {
-      console.error("Discord error", e);
+      console.error("[Discord] ❌ ส่งข้อความไม่สำเร็จ:", e.message);
     }
   });
 
-  client.login(DISCORD_TOKEN);
+  client.login(DISCORD_TOKEN).catch((e) => console.error("[Discord] ❌ ล็อกอินไม่สำเร็จ (เช็ก DISCORD_TOKEN):", e.message));
+} else {
+  console.log("[Discord] ⏭️ ข้าม: ไม่ได้ตั้ง DISCORD_TOKEN");
 }
 
 /* ---------- LINE + เว็บเซิร์ฟเวอร์สำหรับ Render ---------- */
@@ -281,7 +288,10 @@ app.post("/line", express.raw({ type: "*/*" }), (req, res) => {
     .digest("base64");
   const a = Buffer.from(sig);
   const b = Buffer.from(expected);
-  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return res.sendStatus(401);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+    console.error("[LINE] ❌ ลายเซ็นไม่ตรง (เช็ก LINE_CHANNEL_SECRET ว่าถูกช่องหรือไม่)");
+    return res.sendStatus(401);
+  }
   res.sendStatus(200);
 
   let body;
@@ -290,6 +300,7 @@ app.post("/line", express.raw({ type: "*/*" }), (req, res) => {
   } catch {
     return;
   }
+  console.log(`[LINE] 📩 webhook เข้ามา ${body.events?.length ?? 0} event`);
   for (const ev of body.events ?? []) handleLine(ev).catch((e) => console.error("LINE error", e));
 });
 
@@ -301,7 +312,10 @@ async function handleLine(ev) {
 
   if (isGroup) {
     const self = (ev.message.mention?.mentionees ?? []).filter((x) => x.isSelf);
-    if (!self.length) return; // ต้อง Ping ถึงจะตอบ
+    if (!self.length) {
+      console.log("[LINE] ⏭️ ข้ามข้อความในกลุ่ม (ไม่ได้ Ping บอท)");
+      return; // ต้อง Ping ถึงจะตอบ
+    }
     for (const x of self.sort((p, q) => q.index - p.index)) {
       text = text.slice(0, x.index) + text.slice(x.index + x.length);
     }
@@ -309,8 +323,9 @@ async function handleLine(ev) {
 
   const ctxKey = `ln:${src.groupId ?? src.roomId ?? src.userId}`;
   const reply = await respond(ctxKey, `ln:${src.userId ?? ctxKey}`, text);
+  if (reply == null) return; // AI ล้มเหลว ไม่ตอบ
 
-  await fetch("https://api.line.me/v2/bot/message/reply", {
+  const r = await fetch("https://api.line.me/v2/bot/message/reply", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -321,6 +336,43 @@ async function handleLine(ev) {
       messages: [{ type: "text", text: reply.slice(0, 4900) }],
     }),
   });
+  if (!r.ok) console.error(`[LINE] ❌ ส่งตอบไม่สำเร็จ ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  else console.log("[LINE] ✅ ตอบกลับแล้ว");
 }
 
-app.listen(PORT, () => console.log(`Slimy AI ฟังที่พอร์ต ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`[Web] ✅ เซิร์ฟเวอร์พร้อม พอร์ต ${PORT}`);
+  startupChecks();
+});
+
+async function startupChecks() {
+  // Gemma
+  if (!GEMINI_API_KEY) console.error("[AI] ❌ ไม่ได้ตั้ง GEMINI_API_KEY");
+  else {
+    try {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMMA_MODEL}`, {
+        headers: { "x-goog-api-key": GEMINI_API_KEY },
+      });
+      if (r.ok) console.log(`[AI] ✅ เชื่อมต่อ Gemma สำเร็จ: ${GEMMA_MODEL}`);
+      else console.error(`[AI] ❌ ใช้โมเดล ${GEMMA_MODEL} ไม่ได้ (${r.status}): ${(await r.text()).slice(0, 200)}`);
+    } catch (e) {
+      console.error("[AI] ❌ ต่อ Google ไม่ได้:", e.message);
+    }
+  }
+  // LINE
+  const missing = [!LINE_CHANNEL_SECRET && "LINE_CHANNEL_SECRET", !LINE_CHANNEL_ACCESS_TOKEN && "LINE_CHANNEL_ACCESS_TOKEN"].filter(Boolean);
+  if (missing.length) console.error(`[LINE] ❌ ยังไม่ได้ตั้ง: ${missing.join(", ")}`);
+  else {
+    try {
+      const r = await fetch("https://api.line.me/v2/bot/info", {
+        headers: { Authorization: `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}` },
+      });
+      if (r.ok) {
+        const j = await r.json();
+        console.log(`[LINE] ✅ เชื่อมต่อสำเร็จ: ${j.displayName ?? "-"} (รอ webhook ที่ /line)`);
+      } else console.error(`[LINE] ❌ Access Token ใช้ไม่ได้ (${r.status}): ${(await r.text()).slice(0, 200)}`);
+    } catch (e) {
+      console.error("[LINE] ❌ ต่อ LINE ไม่ได้:", e.message);
+    }
+  }
+}
