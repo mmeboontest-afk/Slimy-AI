@@ -7,14 +7,14 @@ const {
   LINE_CHANNEL_SECRET,
   LINE_CHANNEL_ACCESS_TOKEN,
   GEMINI_API_KEY,
-  GEMMA_MODEL = "gemma-3-27b-it",
+  GEMMA_MODEL = "gemma-4-26b-a4b-it",
   DEFAULT_CITY = "Bangkok",
   PORT = 3000,
 } = process.env;
 
 /* ---------- ค่าตั้งต้น (ปรับได้) ---------- */
 const MAX_INPUT_CHARS = 500; // ตัดข้อความผู้ใช้ ประหยัดโทเค็น
-const MAX_OUTPUT_TOKENS = 300; // จำกัดคำตอบ
+const MAX_OUTPUT_TOKENS = 600; // จำกัดคำตอบ
 const HISTORY_TURNS = 3; // จำบทสนทนาล่าสุดกี่รอบ
 const COOLDOWN_MS = 4000; // คูลดาวน์ต่อคน
 const DAILY_LIMIT = 40; // จำนวนครั้งต่อคนต่อวัน
@@ -171,7 +171,7 @@ async function askGemma(prompt) {
   );
   if (!res.ok) throw new Error(`Gemma ${res.status}`);
   const j = await res.json();
-  return (j.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ?? "").trim();
+  return (j.candidates?.[0]?.content?.parts?.filter((p) => !p.thought).map((p) => p.text).join("") ?? "").trim();
 }
 
 async function respond(ctxKey, userKey, rawText) {
@@ -219,7 +219,7 @@ if (DISCORD_TOKEN) {
     partials: [Partials.Channel],
   });
 
-  client.once("ready", () => console.log(`Discord พร้อม: ${client.user.tag}`));
+  client.once("clientReady", () => console.log(`Discord พร้อม: ${client.user.tag}`));
 
   client.on("messageCreate", async (m) => {
     if (m.author.bot) return;
