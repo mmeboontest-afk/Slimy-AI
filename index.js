@@ -157,9 +157,9 @@ function allow(userKey) {
 }
 
 /* ---------- เรียก Gemma ---------- */
-async function askGemma(prompt) {
+async function callModel(model, prompt) {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMMA_MODEL}:generateContent`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": GEMINI_API_KEY },
@@ -169,9 +169,36 @@ async function askGemma(prompt) {
       }),
     }
   );
-  if (!res.ok) throw new Error(`Gemma ${res.status}`);
+  if (!res.ok) {
+    const body = (await res.text()).slice(0, 300);
+    const err = new Error(`${model} ${res.status}: ${body}`);
+    err.status = res.status;
+    throw err;
+  }
   const j = await res.json();
-  return (j.candidates?.[0]?.content?.parts?.filter((p) => !p.thought).map((p) => p.text).join("") ?? "").trim();
+  return (
+    j.candidates?.[0]?.content?.parts?.filter((p) => !p.thought).map((p) => p.text).join("") ?? ""
+  ).trim();
+}
+
+// ลองโมเดลหลัก 2 ครั้ง (กัน 500/429 ชั่วคราว) แล้วสลับไปโมเดลสำรอง
+const FALLBACK_MODEL = process.env.GEMMA_FALLBACK_MODEL || "gemma-4-31b-it";
+async function askGemma(prompt) {
+  const tries = [GEMMA_MODEL, GEMMA_MODEL, FALLBACK_MODEL].filter(Boolean);
+  let lastErr;
+  for (let i = 0; i < tries.length; i++) {
+    try {
+      return await callModel(tries[i], prompt);
+    } catch (e) {
+      lastErr = e;
+      console.error("Gemma error:", e.message);
+      if (e.status && e.status < 500 && e.status !== 429) {
+        if (tries[i] === tries[i + 1]) i++; // 4xx ลองซ้ำโมเดลเดิมไม่ช่วย ข้ามไปตัวสำรอง
+      }
+      await new Promise((r) => setTimeout(r, 800));
+    }
+  }
+  throw lastErr;
 }
 
 async function respond(ctxKey, userKey, rawText) {
