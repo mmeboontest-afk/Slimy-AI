@@ -7,7 +7,7 @@ const {
   LINE_CHANNEL_SECRET,
   LINE_CHANNEL_ACCESS_TOKEN,
   GEMINI_API_KEY,
-  GEMMA_MODEL = "gemma-4-26b-a4b-it",
+  AI_MODEL = "gemini-3.5-flash-lite",
   DEFAULT_CITY = "Bangkok",
   PORT = 3000,
 } = process.env;
@@ -182,16 +182,16 @@ async function callModel(model, prompt) {
 }
 
 // ลองโมเดลหลัก 2 ครั้ง (กัน 500/429 ชั่วคราว) แล้วสลับไปโมเดลสำรอง
-const FALLBACK_MODEL = process.env.GEMMA_FALLBACK_MODEL || "gemma-4-31b-it";
+const FALLBACK_MODEL = process.env.AI_FALLBACK_MODEL || "gemini-3.1-flash-lite";
 async function askGemma(prompt) {
-  const tries = [GEMMA_MODEL, GEMMA_MODEL, FALLBACK_MODEL].filter(Boolean);
+  const tries = [AI_MODEL, AI_MODEL, FALLBACK_MODEL].filter(Boolean);
   let lastErr;
   for (let i = 0; i < tries.length; i++) {
     try {
       return await callModel(tries[i], prompt);
     } catch (e) {
       lastErr = e;
-      console.error("Gemma error:", e.message);
+      console.error("AI error:", e.message);
       if (e.status && e.status < 500 && e.status !== 429) {
         if (tries[i] === tries[i + 1]) i++; // 4xx ลองซ้ำโมเดลเดิมไม่ช่วย ข้ามไปตัวสำรอง
       }
@@ -346,17 +346,19 @@ app.listen(PORT, () => {
 });
 
 async function startupChecks() {
-  // Gemma
+  // AI (โมเดลหลัก + สำรอง)
   if (!GEMINI_API_KEY) console.error("[AI] ❌ ไม่ได้ตั้ง GEMINI_API_KEY");
   else {
-    try {
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMMA_MODEL}`, {
-        headers: { "x-goog-api-key": GEMINI_API_KEY },
-      });
-      if (r.ok) console.log(`[AI] ✅ เชื่อมต่อ Gemma สำเร็จ: ${GEMMA_MODEL}`);
-      else console.error(`[AI] ❌ ใช้โมเดล ${GEMMA_MODEL} ไม่ได้ (${r.status}): ${(await r.text()).slice(0, 200)}`);
-    } catch (e) {
-      console.error("[AI] ❌ ต่อ Google ไม่ได้:", e.message);
+    for (const m of [AI_MODEL, FALLBACK_MODEL]) {
+      try {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}`, {
+          headers: { "x-goog-api-key": GEMINI_API_KEY },
+        });
+        if (r.ok) console.log(`[AI] ✅ โมเดลพร้อมใช้: ${m}${m === AI_MODEL ? " (หลัก)" : " (สำรอง)"}`);
+        else console.error(`[AI] ❌ ใช้โมเดล ${m} ไม่ได้ (${r.status}): ${(await r.text()).slice(0, 200)}`);
+      } catch (e) {
+        console.error("[AI] ❌ ต่อ Google ไม่ได้:", e.message);
+      }
     }
   }
   // LINE
