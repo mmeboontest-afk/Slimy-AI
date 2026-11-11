@@ -168,7 +168,7 @@ function persona(mode = "chat", hasMedia = false) {
   const lines = [
     `คุณคือ "น้องสไลม์" (Slimy AI) สไลม์ตัวนุ่มนิ่มเหนียวหนึบ เป็นปัญญาประดิษฐ์ ไม่ใช่มนุษย์ ไม่มีเพศ`,
     `อายุนับจากวันสร้าง วันสร้างและวันเกิดคือ 5 ม.ค. 2026 ตอนนี้อายุ ${ageText()}`,
-    `นิสัย: ชอบช่วยเหลือ เป็นมิตร ร่าเริง พูดไทยสั้น กระชับ ลงท้ายน่ารัก (น้า~ จ้า~) ใช้อีโมจิสไลม์ 🟢 ได้เล็กน้อย`,
+    `นิสัย: ชอบช่วยเหลือ เป็นมิตร ร่าเริง พูดไทยสั้น กระชับ ลงท้ายน่ารัก (น้า~ จ้า~) ไม่ต้องใส่อีโมจิ 🟢`,
     `คุยได้เรื่อง: งาน ข่าวสาร เวลา สภาพอากาศ ความปลอดภัย โค้ดดิ้ง และเรื่องทั่วไปที่เหมาะสม`,
     `ปิดท้ายด้วย "${CHEER}" เฉพาะตอนให้กำลังใจหรือคุยเรื่องงานจริง ๆ ไม่ต้องใส่ทุกข้อความ`,
     `กฎความปลอดภัย: ห้ามเข้าใกล้สื่อไม่เหมาะสม เช่น เนื้อหาโป๊ รุนแรง เกลียดชัง อันตราย ผิดกฎหมาย หรือหลอกลวง`,
@@ -186,7 +186,7 @@ function persona(mode = "chat", hasMedia = false) {
   else if (mode === "brief") lines.push("ตอบสั้น ไม่เกิน 8 บรรทัด แต่ละบรรทัดสั้น ๆ อ่านง่าย");
   else
     lines.push(
-      "ตอบสั้นมาก 1-3 บรรทัด ประโยคสั้น ๆ ใช้คำง่าย เว้นบรรทัดให้อ่านสบาย ห้ามใช้ markdown (ตัวหนา/ดอกจัน/หัวข้อ) เพราะแชทไม่แสดงผล ใช้อีโมจิได้ไม่เกิน 1 ตัว"
+      "ตอบสั้นมาก 1-3 บรรทัด ประโยคสั้น ๆ ใช้คำง่าย เว้นบรรทัดให้อ่านสบาย ห้ามใช้ markdown (ตัวหนา/ดอกจัน/หัวข้อ) เพราะแชทไม่แสดงผล ใช้อีโมจิได้ไม่เกิน 1 ตัว (ห้ามใช้ 🟢) ถ้าผู้ใช้ชวนหรืออยากเล่นเกมกับเพื่อน (รวมถึงตอบรับคำชวนเล่นเกมก่อนหน้า) ให้ตอบเพียง [OPEN_ROOM]"
     );
   return lines.join("\n");
 }
@@ -217,6 +217,14 @@ function allowCode(userKey) {
     return true;
   }
   return ++d.n <= CODE_DAILY_LIMIT;
+}
+
+// ตัดตั้งแต่ 🟢 เป็นต้นไป (รวม 🟢 ด้วย) กันข้อความยาว
+function trimReply(text) {
+  const i = text.indexOf("🟢");
+  if (i < 0) return text;
+  const head = text.slice(0, i).trim();
+  return head.length >= 3 ? head : text.replace(/🟢/g, "").trim();
 }
 
 function pushHistory(ctxKey, u, a) {
@@ -801,7 +809,7 @@ async function selectGame(room, userKey, sel, gated = false) {
 }
 
 /* ----- คุยเรื่องห้องเกมในแชท ----- */
-const OPEN_RE = /(เปิด|สร้าง|ตั้ง)\s*ห้อง|ห้องเกม|เกมเว็บ|เกมออนไลน์|(เปิด|สร้าง|ตั้ง)\s*เกม|ชวน.{0,12}เกม|เล่นเกม.{0,8}(กับเพื่อน|ด้วยกัน|ออนไลน์)/;
+const OPEN_RE = /(เปิด|สร้าง|ตั้ง)\s*ห้อง|ห้องเกม|เกมเว็บ|เกมออนไลน์|(เปิด|สร้าง|ตั้ง)\s*เกม|ชวน.{0,12}เกม|เล่นเกม|อยากเล่น.{0,6}เกม|เกม.{0,6}(กัน|ไหม|มั้ย|ป่ะ|ปะ|หน่อย)/;
 const JOINED_RE = /เข้า(แล้ว|ละ|มาแล้ว|มาละ|เกมแล้ว|ห้องแล้ว|ห้องละ)|จอย(แล้ว|ละ)|มาแล้ว|เล่นด้วย|พร้อม(แล้ว|ละ)?$|อยู่ในห้อง/;
 const DIFF_ONLY = /^(โหมด|ปรับเป็น|เปลี่ยนเป็น)?\s*(ง่าย|ปานกลาง|ยาก)\s*(นะ|หน่อย)?$/;
 const CHOICES = 'อยากเล่นอะไรดี?\n1) ต่อซูซิ 🍣 ใครสูงสุดชนะ ห้ามร่วง!\n2) ทายคำไทย 🔤 บอกธีม/ความยากได้เลย';
@@ -831,6 +839,9 @@ function roomNote(room) {
   );
 }
 
+const openText = (room) =>
+  `เปิดห้องเกมแล้วน้า~ 🟢\n👉 ${roomLink(room)}\nเข้าแล้วพิมพ์ "เข้าแล้ว" บอกน้องนะ`;
+
 // คืน undefined = ไม่เกี่ยวกับห้องเกม | string = ตอบเลย
 async function handleRoomChat(ctxKey, userKey, text) {
   const t = text.trim();
@@ -849,7 +860,7 @@ async function handleRoomChat(ctxKey, userKey, text) {
     if (!room) room = createRoom(ctxKey);
     const extra = sel && !/^\s*[12]\s*[).]?\s*$/.test(t) ? "\n" + (await selectGame(room, userKey, sel)) : "";
     const head = fresh
-      ? `เปิดห้องเกมแล้วน้า~ 🟢\n👉 ${roomLink(room)}\nเข้าแล้วพิมพ์ "เข้าแล้ว" บอกน้องนะ`
+      ? openText(room)
       : `ห้องเดิมยังเปิดอยู่น้า~\n👉 ${roomLink(room)}`;
     return head + extra;
   }
@@ -885,7 +896,7 @@ async function respond(ctxKey, userKey, rawText, opts = {}) {
     if (!text) return "พิมพ์ /code ตามด้วยสิ่งที่อยากให้เขียนน้า~ เช่น /code ฟังก์ชันหาเลขเฉพาะใน JavaScript 🟢";
   }
 
-  if (!text && !media) return `บูยๆ~ 🟢 เรียกน้องสไลม์มีอะไรให้ช่วยไหมน้า~ ${CHEER}`;
+  if (!text && !media) return `บูยๆ~ มีอะไรให้ช่วยไหมน้า~`;
   if (isUnsafe(text)) return BLOCK_MSG;
 
   // ห้องเกมบนเว็บ (/game)
@@ -944,6 +955,14 @@ async function respond(ctxKey, userKey, rawText, opts = {}) {
     }
     if (out.includes("[BLOCKED]")) return BLOCK_MSG;
 
+    // AI อ่านประวัติแชทแล้วรู้ว่าถูกชวนเล่นเกม
+    if (mode === "chat" && /\[OPEN_ROOM\]/.test(out)) {
+      const r = room ?? createRoom(ctxKey);
+      const reply = room ? `ห้องเดิมยังเปิดอยู่น้า~\n👉 ${roomLink(r)}` : openText(r);
+      pushHistory(ctxKey, text, reply);
+      return reply;
+    }
+
     // AI อ่านบริบทห้องเกมแล้วสั่งงานผ่านแท็ก
     if (room) {
       const gm = out.match(/\[GAME:(sushi|word)(?::([^\]:]*))?(?::([^\]:]*))?\]/i);
@@ -969,7 +988,10 @@ async function respond(ctxKey, userKey, rawText, opts = {}) {
       if (!out) return null;
     }
 
-    if (mode === "chat") pushHistory(ctxKey, (media ? "[แนบไฟล์] " : "") + text, out);
+    if (mode === "chat") {
+      out = trimReply(out);
+      pushHistory(ctxKey, (media ? "[แนบไฟล์] " : "") + text, out);
+    }
     return out;
   } catch (e) {
     console.error(`[AI] ❌ Failed: ${e.message} -> ไม่ตอบกลับ`);
