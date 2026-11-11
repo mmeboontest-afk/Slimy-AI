@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ห้องเกมน้องสไลม์</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&family=Mali:wght@400;600&family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --banana:#FFF3B0; --banana-2:#FFE98A; --banana-3:#FFD84D; --cream:#FFFCEB;
+  --ink:#5A4A2A; --ink-soft:#8A7650; --peach:#FFD9CC; --mint:#CDEFDD; --sky:#D6EBFF; --pink:#FFD0DC;
+  --shadow:0 7px 0 rgba(235,205,95,.5),0 18px 30px rgba(190,160,50,.16);
+  --f-head:"Kanit","Prompt",system-ui,sans-serif;
+  --f-body:"Prompt","Kanit",system-ui,sans-serif;
+  --f-cute:"Mali","Prompt",system-ui,cursive;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{font-family:var(--f-body);color:var(--ink);background:linear-gradient(180deg,#FFF6C2 0%,#FFFCEB 55%,#fff 100%);overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.blob{position:absolute;border-radius:50%;opacity:.5;animation:float 9s ease-in-out infinite}
+.b1{width:220px;height:220px;background:#FFE98A;left:-70px;top:8%}
+.b2{width:150px;height:150px;background:#FFD9CC;right:-40px;top:32%;animation-delay:-3s}
+.b3{width:260px;height:260px;background:#D6EBFF;left:28%;bottom:-130px;animation-delay:-5s}
+.cloud{position:absolute;width:120px;height:42px;background:#fff;border-radius:42px;opacity:.92;animation:drift 40s linear infinite}
+.cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
+.cloud::before{width:54px;height:54px;left:16px;top:-26px}
+.cloud::after{width:40px;height:40px;left:62px;top:-18px}
+.c1{top:13%;left:-160px}
+.c2{top:60%;left:-160px;animation-duration:56s;animation-delay:-22s;transform:scale(.7)}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-22px)}}
+@keyframes drift{to{transform:translateX(calc(100vw + 320px))}}
+
+#app{position:relative;z-index:1;min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:10px 14px calc(16px + env(safe-area-inset-bottom))}
+.top{width:min(94vw,460px);display:flex;justify-content:space-between;align-items:center;padding:4px 2px 10px}
+.logo{display:flex;align-items:center;gap:8px;font:600 1.1rem var(--f-head)}
+.chip{display:inline-flex;align-items:center;gap:4px;background:#fff;border:2px solid #FFE98A;border-radius:99px;padding:3px 12px;font:500 .85rem var(--f-cute);box-shadow:0 3px 0 #FFF0A8}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:6px}
+.mascot{width:44px;height:38px;display:inline-block}
+.mascot.big{width:120px;height:100px}
+.bob{animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-10px) scale(.96,1.05)}}
+
+.screen{display:none;width:100%;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center}
+.screen.active{display:flex;animation:screenIn .5s cubic-bezier(.2,.9,.3,1.15)}
+@keyframes screenIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+.card{width:min(92vw,440px);background:#fff;border-radius:28px;padding:22px 20px;box-shadow:var(--shadow);border:3px solid #FFF0A8;display:flex;flex-direction:column;align-items:center;gap:12px}
+.pop{animation:pop .5s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+h1,h2{font-family:var(--f-head);margin:0;font-weight:600}
+h1{font-size:1.5rem}h2{font-size:1.35rem}
+p{margin:0;line-height:1.55}
+.small{font-size:.85rem;color:var(--ink-soft)}
+.gicon{font-size:3.4rem;animation:bob 2.4s ease-in-out infinite}
+
+input{width:100%;font:500 1.05rem var(--f-body);color:var(--ink);padding:12px 14px;border-radius:16px;border:2.5px solid #FFE27A;background:#FFFDF2;outline:none;text-align:center}
+input:focus{border-color:#FFC93C;box-shadow:0 0 0 4px rgba(255,216,77,.3)}
+.btn{font:600 1.05rem var(--f-head);padding:11px 24px;border:0;border-radius:18px;background:#FFD84D;color:#5A4300;box-shadow:0 5px 0 #E0B72E;cursor:pointer;transition:transform .12s,box-shadow .12s}
+.btn:active:not(:disabled){transform:translateY(4px);box-shadow:0 1px 0 #E0B72E}
+.btn:disabled{opacity:.65;filter:saturate(.6)}
+.btn.big{font-size:1.25rem;padding:14px 34px}
+.btn.ghost{background:#fff;box-shadow:0 5px 0 #F1DFA0;color:var(--ink)}
+.row{display:flex;gap:8px;width:100%;align-items:center}
+.row input{flex:1;min-width:0}
+
+.dots{display:flex;gap:8px}
+.dots i{width:12px;height:12px;border-radius:50%;background:#FFD84D;animation:dot 1.2s ease-in-out infinite}
+.dots i:nth-child(2){animation-delay:.15s;background:#FFB9A3}
+.dots i:nth-child(3){animation-delay:.3s;background:#BFE3FF}
+@keyframes dot{0%,80%,100%{transform:scale(.6);opacity:.5}40%{transform:scale(1.2);opacity:1}}
+
+.countnum{font:600 9rem/1 var(--f-head);color:#FFC93C;text-shadow:0 8px 0 #FFE98A}
+.countnum.tick{animation:tick .9s ease-out}
+@keyframes tick{0%{transform:scale(2.2);opacity:0}25%{transform:scale(1);opacity:1}100%{transform:scale(.9);opacity:.85}}
+
+.game{justify-content:flex-start;gap:10px}
+.hud{width:min(92vw,420px);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.score{background:#fff;border-radius:18px;padding:5px 14px;min-width:84px;box-shadow:0 4px 0 #FFE98A;font-family:var(--f-head)}
+.score small{display:block;font:500 .75rem var(--f-cute);color:var(--ink-soft)}
+.score b{font-size:1.7rem;line-height:1.1;display:block}
+.score b.bump{animation:bump .3s}
+@keyframes bump{50%{transform:scale(1.35);color:#FF9A6B}}
+.round,.combo{font:600 1rem var(--f-cute);color:var(--ink-soft)}
+.combo{min-height:1.4em;color:#FF9A6B}
+#cv{align-self:center;height:min(calc(100dvh - 260px),calc(min(92vw,400px)*14/9));aspect-ratio:9/14;max-width:92vw;background:rgba(255,255,255,.6);border-radius:26px;border:3px solid #fff;box-shadow:var(--shadow);touch-action:manipulation}
+
+.w-card{gap:10px}
+.bar{width:100%;height:12px;border-radius:99px;background:#FFF1B0;overflow:hidden}
+.bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#FFD84D,#FFB38A);transition:width .1s linear}
+.hints{display:flex;flex-direction:column;gap:6px;width:100%;min-height:96px}
+.hint{background:#FFF8D6;border-radius:14px;padding:8px 12px;font:500 .98rem var(--f-cute);text-align:left;animation:hintIn .45s cubic-bezier(.2,.9,.3,1.3)}
+.hint b{color:#E0A100;margin-right:6px}
+@keyframes hintIn{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+.slots{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.slot{min-width:36px;height:46px;padding:0 4px;border-radius:12px;background:#FFF8D6;border:2px dashed #E8CF6A;display:inline-flex;align-items:center;justify-content:center;font:600 1.35rem var(--f-head)}
+.slot.on{background:#fff;border-style:solid;border-color:#FFD84D;animation:pop .35s}
+.slot.ans{background:#E6F8EC;border-color:#9ED9B3}
+.botline{font:500 .9rem var(--f-cute);color:var(--ink-soft);min-height:1.5em}
+.msg{flex:1;text-align:right;font:600 1rem var(--f-cute);min-height:1.4em}
+.msg.good{color:#3FA66A;animation:pop .4s}
+.msg.bad{color:#E0735A}
+.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+
+.remoji{font-size:4.2rem;animation:bob 1.8s ease-in-out infinite}
+.rank{width:100%;display:flex;flex-direction:column;gap:6px}
+.rrow{display:flex;align-items:center;gap:8px;background:#FFF8D6;border-radius:14px;padding:8px 12px;font:500 1rem var(--f-body);animation:hintIn .4s both}
+.rrow .nm{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rrow small{color:var(--ink-soft)}
+
+#toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translate(-50%,40px);background:#5A4A2A;color:#FFF8D6;padding:10px 18px;border-radius:99px;font:500 .95rem var(--f-body);opacity:0;transition:.3s;z-index:60;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.confetti i{position:fixed;top:-16px;width:10px;height:14px;border-radius:3px;z-index:50;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(108vh) rotate(720deg)}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body>
+<div class="bg"><i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="cloud c1"></i><i class="cloud c2"></i></div>
+<div id="confetti" class="confetti"></div>
+
+<main id="app">
+  <header class="top">
+    <div class="logo">
+      <svg class="mascot bob" viewBox="0 0 120 100" aria-hidden="true"><path d="M8 92C8 52 34 14 60 14s52 38 52 78z" fill="#C8F2BC" stroke="#86CF76" stroke-width="5"/><ellipse cx="40" cy="38" rx="10" ry="6" fill="#fff" opacity=".7"/><circle cx="44" cy="64" r="7" fill="#35523a"/><circle cx="76" cy="64" r="7" fill="#35523a"/><circle cx="46" cy="61.5" r="2.5" fill="#fff"/><circle cx="78" cy="61.5" r="2.5" fill="#fff"/><path d="M52 78q8 8 16 0" stroke="#35523a" stroke-width="4.5" fill="none" stroke-linecap="round"/></svg>
+      <span>ห้องเกมน้องสไลม์</span>
+    </div>
+    <div id="roomTag" class="chip"></div>
+  </header>
+
+  <section id="s-code" class="screen">
+    <div class="card pop">
+      <h1>เข้าห้องเกม</h1>
+      <p>ใส่รหัสห้อง 5 ตัวที่น้องสไลม์ส่งให้ในแชท</p>
+      <input id="codeIn" maxlength="5" placeholder="เช่น AB7K9" autocapitalize="characters" autocomplete="off">
+      <button id="codeBtn" class="btn">ไปเลย</button>
+    </div>
+  </section>
+
+  <section id="s-name" class="screen">
+    <div class="card pop">
+      <h1>ชื่อเล่นของคุณ?</h1>
+      <p class="small">เพื่อน ๆ จะเห็นชื่อนี้ตอนประกาศผล</p>
+      <input id="nameIn" maxlength="16" placeholder="เช่น มะนาว" autocomplete="off">
+      <button id="nameBtn" class="btn">เข้าห้อง</button>
+    </div>
+  </section>
+
+  <section id="s-wait" class="screen">
+    <div class="card pop">
+      <svg class="mascot big bob" viewBox="0 0 120 100" aria-hidden="true"><path d="M8 92C8 52 34 14 60 14s52 38 52 78z" fill="#C8F2BC" stroke="#86CF76" stroke-width="5"/><ellipse cx="40" cy="38" rx="10" ry="6" fill="#fff" opacity=".7"/><circle cx="44" cy="64" r="7" fill="#35523a"/><circle cx="76" cy="64" r="7" fill="#35523a"/><circle cx="46" cy="61.5" r="2.5" fill="#fff"/><circle cx="78" cy="61.5" r="2.5" fill="#fff"/><path d="M52 78q8 8 16 0" stroke="#35523a" stroke-width="4.5" fill="none" stroke-linecap="round"/></svg>
+      <h2 id="waitTitle">รอแป๊บนึงน้า~</h2>
+      <p id="waitText"></p>
+      <div class="dots"><i></i><i></i><i></i></div>
+      <div id="who1" class="chips"></div>
+    </div>
+  </section>
+
+  <section id="s-ready" class="screen">
+    <div class="card pop">
+      <div id="gIcon" class="gicon">🍣</div>
+      <h2 id="gTitle"></h2>
+      <p id="gDesc"></p>
+      <div class="chips"><span id="gDiff" class="chip"></span><span id="gCount" class="chip"></span></div>
+      <button id="readyBtn" class="btn big">พร้อมแล้ว!</button>
+      <p id="readyInfo" class="small"></p>
+      <div id="who2" class="chips"></div>
+    </div>
+  </section>
+
+  <section id="s-count" class="screen">
+    <div id="countNum" class="countnum">3</div>
+    <p>เตรียมตัวน้า~</p>
+  </section>
+
+  <section id="s-sushi" class="screen game">
+    <div class="hud">
+      <div class="score"><small>คุณ</small><b id="sScore">0</b></div>
+      <div id="sCombo" class="combo"></div>
+      <div class="score"><small>🤖 บอท</small><b id="sBot">0</b></div>
+    </div>
+    <canvas id="cv"></canvas>
+    <button id="dropBtn" class="btn big">วาง! 🍣</button>
+  </section>
+
+  <section id="s-word" class="screen game">
+    <div class="hud">
+      <div class="score"><small>คุณ</small><b id="wScore">0</b></div>
+      <div id="wRound" class="round"></div>
+      <div class="score"><small>🤖 บอท</small><b id="wBotScore">0</b></div>
+    </div>
+    <div class="card w-card">
+      <div class="bar"><i id="wBar"></i></div>
+      <div id="wHints" class="hints"></div>
+      <div id="wSlots" class="slots"></div>
+      <div id="wBotLine" class="botline"></div>
+      <div class="row"><input id="wIn" autocomplete="off" autocapitalize="off" placeholder="พิมพ์คำตอบ…"><button id="wGo" class="btn">ส่ง</button></div>
+      <div class="row"><button id="wSkip" class="btn ghost">ข้าม</button><div id="wMsg" class="msg"></div></div>
+    </div>
+  </section>
+
+  <section id="s-result" class="screen">
+    <div class="card pop">
+      <div id="rEmoji" class="remoji">🏁</div>
+      <h2 id="rTitle"></h2>
+      <p id="rText"></p>
+      <div id="rRank" class="rank"></div>
+      <p id="rWait" class="small"></p>
+    </div>
+  </section>
+</main>
+<div id="toast"></div>
+
+<script>
+(() => {
+"use strict";
+const $ = (s) => document.querySelector(s);
+const params = new URLSearchParams(location.search);
+let ROOM = (params.get("room") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5);
+const store = {
+  get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
+};
+let pid = store.get("sg_pid");
+if (!pid || !/^[A-Za-z0-9]{6,40}$/.test(pid)) {
+  pid = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
+  store.set("sg_pid", pid);
+}
+let NAME = store.get("sg_name") || "";
+let offset = 0;
+let room = null;
+let local = { round: 0, state: "idle" }; // idle | counting | playing | finished
+let cleanup = null;
+let pollTimer = 0;
+let current = "";
+
+/* ---------- ตัวช่วยหน้าจอ ---------- */
+function show(id) {
+  if (current === id) return;
+  document.querySelectorAll(".screen").forEach((s) => s.classList.toggle("active", s.id === id));
+  current = id;
+  window.scrollTo(0, 0);
+}
+let toastT = 0;
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove("show"), 2800);
+}
+function confetti() {
+  const box = $("#confetti");
+  const colors = ["#FFD84D", "#FFB9A3", "#BFE3FF", "#C8F2BC", "#FFD0DC", "#FFF3B0"];
+  for (let i = 0; i < 46; i++) {
+    const e = document.createElement("i");
+    e.style.left = Math.random() * 100 + "vw";
+    e.style.background = colors[i % colors.length];
+    e.style.animationDuration = 2.2 + Math.random() * 2 + "s";
+    e.style.animationDelay = Math.random() * 0.6 + "s";
+    box.appendChild(e);
+    setTimeout(() => e.remove(), 5200);
+  }
+}
+function renderWho(names) {
+  for (const id of ["#who1", "#who2"]) {
+    const box = $(id);
+    box.textContent = "";
+    for (const n of names) {
+      const c = document.createElement("span");
+      c.className = "chip";
+      c.textContent = "🟢 " + n;
+      box.appendChild(c);
+    }
+  }
+}
+const stopGame = () => { if (cleanup) { cleanup(); cleanup = null; } };
+
+/* ---------- API ---------- */
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  let j = {};
+  try { j = await r.json(); } catch {}
+  if (!r.ok) throw Object.assign(new Error(j.error || "เชื่อมต่อไม่ได้ (" + r.status + ")"), { status: r.status });
+  return j;
+}
+const post = (path, body) =>
+  api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+
+/* ---------- เริ่มต้น / รหัสห้อง / ชื่อ ---------- */
+$("#codeBtn").onclick = () => {
+  const c = $("#codeIn").value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5);
+  if (c.length < 5) return toast("รหัสห้องมี 5 ตัวน้า~");
+  location.href = "/game?room=" + c;
+};
+$("#codeIn").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#codeBtn").click(); });
+$("#nameBtn").onclick = () => {
+  const n = $("#nameIn").value.trim().slice(0, 16);
+  if (!n) return toast("ใส่ชื่อก่อนน้า~");
+  NAME = n;
+  store.set("sg_name", n);
+  joinAndPoll();
+};
+$("#nameIn").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#nameBtn").click(); });
+
+async function joinAndPoll() {
+  try {
+    applyRoom(await post(`/api/room/${ROOM}/join`, { pid, name: NAME }));
+  } catch (e) {
+    toast(e.message);
+    if (e.status === 404 || e.status === 409) return show("s-code");
+  }
+  poll();
+}
+
+async function poll() {
+  clearTimeout(pollTimer);
+  try {
+    const j = await api(`/api/room/${ROOM}?pid=${pid}`);
+    if (!j.me.joined) applyRoom(await post(`/api/room/${ROOM}/join`, { pid, name: NAME }));
+    else applyRoom(j);
+  } catch (e) {
+    if (e.status === 404) {
+      stopGame();
+      toast("ห้องนี้หมดอายุแล้วน้า~ ขอห้องใหม่จากน้องสไลม์ได้เลย");
+      return show("s-code");
+    }
+  }
+  pollTimer = setTimeout(poll, 1500);
+}
+
+/* ---------- ตามสถานะห้อง ---------- */
+function applyRoom(j) {
+  room = j;
+  offset = j.now - Date.now();
+  $("#roomTag").textContent = "ห้อง " + j.id;
+  renderWho(j.players);
+  const st = j.stage;
+
+  if (st === "link" || st === "choose") {
+    if (local.state !== "idle") stopGame();
+    local = { round: j.round, state: "idle" };
+    return showWait(j);
+  }
+  if (st === "ready") {
+    if (local.round !== j.round) { stopGame(); local = { round: j.round, state: "idle" }; }
+    if (local.state === "idle") showReady(j);
+    return;
+  }
+  if (st === "playing") {
+    if (local.round !== j.round) local = { round: j.round, state: "idle" };
+    if (!j.me.playing) return showWait(j, true);
+    if (local.state === "idle") beginCountdown(j);
+    return;
+  }
+  if (st === "done") {
+    const wasPlaying = local.state === "playing" || local.state === "counting";
+    if (wasPlaying) { stopGame(); local.state = "idle"; }
+    showFinal(j);
+  }
+}
+
+function showWait(j, late) {
+  const t = $("#waitTitle"), p = $("#waitText");
+  if (late) {
+    t.textContent = "รอบนี้เริ่มไปแล้ว";
+    p.textContent = "รอรอบหน้านะ แล้วน้องสไลม์จะชวนเล่นต่อ";
+  } else if (j.stage === "choose") {
+    t.textContent = "น้องสไลม์กำลังให้เลือกเกม";
+    p.textContent = "กลับไปแชท แล้วพิมพ์ชื่อเกมได้เลย เช่น “ต่อซูซิ” หรือ “ทายคำจังหวัด ยาก”";
+  } else {
+    t.textContent = "เข้าห้องแล้วน้า~";
+    p.textContent = "กลับไปแชท แล้วพิมพ์ “เข้าแล้ว” บอกน้องสไลม์ได้เลย";
+  }
+  show("s-wait");
+}
+
+const DIFF_TH = { easy: "ง่าย", normal: "ปานกลาง", hard: "ยาก" };
+function showReady(j) {
+  const g = j.game;
+  const sushi = g.type === "sushi";
+  $("#gIcon").textContent = sushi ? "🍣" : "🔤";
+  $("#gTitle").textContent = sushi ? "ต่อซูซิ" : "ทายคำไทย";
+  $("#gDesc").textContent = sushi
+    ? "แตะเพื่อวางซูซิให้ตรงชั้นล่าง ส่วนที่เกินจะหล่นไป ใครสูงสุดชนะ อย่าให้ร่วง!"
+    : "ธีม: " + g.theme + " · ดูคำใบ้แล้วพิมพ์ตอบให้เร็วกว่าบอท";
+  $("#gDiff").textContent = "โหมด" + (DIFF_TH[g.diff] || "");
+  $("#gCount").textContent = sushi ? "สู้กับบอท 🤖" : g.items.length + " ข้อ";
+  const btn = $("#readyBtn");
+  btn.disabled = j.me.ready;
+  btn.textContent = j.me.ready ? "พร้อมแล้ว ✅" : "พร้อมแล้ว!";
+  $("#readyInfo").textContent = j.me.ready
+    ? `รอเพื่อน ๆ… (${j.readyCount}/${j.activeCount})`
+    : "กดเมื่อพร้อม เริ่มพร้อมกันทุกคน";
+  show("s-ready");
+}
+$("#readyBtn").onclick = async () => {
+  if (!room) return;
+  $("#readyBtn").disabled = true;
+  try { applyRoom(await post(`/api/room/${ROOM}/ready`, { pid, round: room.round })); }
+  catch (e) { toast(e.message); $("#readyBtn").disabled = false; }
+};
+
+function beginCountdown(j) {
+  local.state = "counting";
+  show("s-count");
+  const game = j.game;
+  const t0 = j.startAt - offset;
+  const num = $("#countNum");
+  let last = null;
+  const iv = setInterval(() => {
+    const left = t0 - Date.now();
+    if (left <= 0) {
+      clearInterval(iv);
+      cleanup = null;
+      local.state = "playing";
+      return game.type === "sushi" ? startSushi(game.diff) : startWord(game);
+    }
+    const n = Math.min(3, Math.ceil(left / 1000));
+    if (n !== last) {
+      last = n;
+      num.textContent = n;
+      num.classList.remove("tick");
+      void num.offsetWidth;
+      num.classList.add("tick");
+    }
+  }, 50);
+  cleanup = () => clearInterval(iv);
+}
+
+/* ---------- จบเกม / ผลลัพธ์ ---------- */
+async function finishGame(score, bot, unit) {
+  stopGame();
+  local.state = "finished";
+  const win = score > bot, draw = score === bot;
+  $("#rEmoji").textContent = win ? "🎉" : draw ? "🤝" : "😭";
+  $("#rTitle").textContent = win ? "คุณชนะบอท!" : draw ? "เสมอกับบอท" : "แพ้บอทแล้ว… สู้ใหม่น้า";
+  $("#rText").textContent = `คุณ ${score} ${unit}  vs  🤖 ${bot} ${unit}`;
+  $("#rRank").textContent = "";
+  $("#rWait").textContent = "รอเพื่อน ๆ จบเกมนิดนึงน้า~";
+  show("s-result");
+  if (win) confetti();
+  try { await post(`/api/room/${ROOM}/result`, { pid, round: local.round, score, bot }); } catch {}
+}
+
+function showFinal(j) {
+  const g = j.game;
+  const unit = g && g.type === "sushi" ? "ชั้น" : "แต้ม";
+  if (local.state !== "finished") {
+    $("#rEmoji").textContent = "🏁";
+    $("#rTitle").textContent = "จบรอบแล้ว";
+    $("#rText").textContent = "";
+  }
+  const box = $("#rRank");
+  box.textContent = "";
+  const list = [...j.results].sort((a, b) => b.score - a.score);
+  const medals = ["🥇", "🥈", "🥉"];
+  list.forEach((r, i) => {
+    const row = document.createElement("div");
+    row.className = "rrow";
+    row.style.animationDelay = i * 0.08 + "s";
+    const m = document.createElement("span"); m.textContent = medals[i] || "▫️";
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = r.name;
+    const sc = document.createElement("b"); sc.textContent = `${r.score} ${unit}`;
+    const bt = document.createElement("small"); bt.textContent = `🤖 ${r.bot}`;
+    row.append(m, nm, sc, bt);
+    box.appendChild(row);
+  });
+  $("#rWait").textContent = "น้องสไลม์ประกาศผลในแชทแล้ว! พิมพ์ “เล่นอีกรอบ” ในแชทได้เลย";
+  if (current !== "s-result") show("s-result");
+}
+
+/* =====================  เกม: ต่อซูซิ  ===================== */
+function startSushi(diff) {
+  show("s-sushi");
+  const CFG = {
+    easy: { v: 140, inc: 3, w: 150, s: 0.88 },
+    normal: { v: 185, inc: 4.2, w: 135, s: 0.93 },
+    hard: { v: 235, inc: 5.5, w: 116, s: 0.955 },
+  }[diff] || { v: 185, inc: 4.2, w: 135, s: 0.93 };
+  const W = 360, H = 560, LH = 34, BASE = H - 72;
+  const cv = $("#cv"), ctx = cv.getContext("2d");
+  let scale = 1;
+  function fit() {
+    const r = cv.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    cv.width = Math.max(1, Math.round(r.width * dpr));
+    cv.height = Math.max(1, Math.round(r.height * dpr));
+    scale = cv.width / W;
+  }
+  fit();
+  window.addEventListener("resize", fit);
+
+  const TOP = [["#FFB28A", "#FFD6C0"], ["#FF93A8", "#FFC4D0"], ["#FFE27A", "#FFF2B8"], ["#BDE8A7", "#DFF6D2"], ["#FFC0A6", "#FFE6DB"], ["#FF9D70", "#FFC9AB"]];
+  const SPARK = ["#FFD84D", "#FFB9A3", "#BFE3FF", "#C8F2BC", "#FFD0DC"];
+  let stack = [{ x: (W - CFG.w) / 2, w: CFG.w, t: -1, pop: 0 }];
+  let cur = { x: 0, w: CFG.w, dir: 1, t: 0 };
+  let score = 0, combo = 0, over = false, done = false, cam = 0, t = 0, botShown = 0, raf = 0, botTimer = 0;
+  let botH = 0;
+  while (Math.random() < CFG.s && botH < 80) botH++;
+  const debris = [], parts = [], floaters = [];
+  const yOf = (i) => BASE - i * LH + cam;
+
+  const sScore = $("#sScore"), sBot = $("#sBot"), sCombo = $("#sCombo");
+  sScore.textContent = "0"; sBot.textContent = "0"; sCombo.textContent = "";
+
+  function setBot() {
+    const dead = botShown >= botH && (over || score > botH);
+    sBot.textContent = botShown + (dead ? " 💥" : "");
+  }
+
+  function drop() {
+    if (over || done) return;
+    const top = stack[stack.length - 1];
+    const left = Math.max(cur.x, top.x), right = Math.min(cur.x + cur.w, top.x + top.w);
+    const ov = right - left;
+    if (ov <= 2) {
+      debris.push({ x: cur.x, y: yOf(stack.length), w: cur.w, t: cur.t, vx: (Math.random() - 0.5) * 80, vy: 0, r: 0, vr: (Math.random() - 0.5) * 4 });
+      return gameOver();
+    }
+    let nx, nw;
+    const perfect = Math.abs(cur.x - top.x) <= 5;
+    if (perfect) {
+      combo++;
+      nx = top.x; nw = top.w;
+      if (combo >= 3) { nw = Math.min(CFG.w, nw + 6); nx = Math.max(0, Math.min(W - nw, nx - 3)); }
+      floaters.push({ text: combo >= 3 ? `Perfect x${combo}!` : "Perfect!", x: W / 2, y: yOf(stack.length) - 10, life: 1 });
+      for (let i = 0; i < 14; i++) parts.push({ x: nx + Math.random() * nw, y: yOf(stack.length), vx: (Math.random() - 0.5) * 240, vy: -Math.random() * 220 - 40, life: 1, c: SPARK[i % SPARK.length] });
+    } else {
+      combo = 0;
+      nx = left; nw = ov;
+      if (cur.x < top.x) debris.push({ x: cur.x, y: yOf(stack.length), w: top.x - cur.x, t: cur.t, vx: -50, vy: 0, r: 0, vr: -2 });
+      if (cur.x + cur.w > top.x + top.w) debris.push({ x: top.x + top.w, y: yOf(stack.length), w: cur.x + cur.w - (top.x + top.w), t: cur.t, vx: 50, vy: 0, r: 0, vr: 2 });
+    }
+    stack.push({ x: nx, w: nw, t: cur.t, pop: 1 });
+    score = stack.length - 1;
+    sScore.textContent = score;
+    sScore.classList.remove("bump"); void sScore.offsetWidth; sScore.classList.add("bump");
+    sCombo.textContent = combo >= 2 ? `คอมโบ x${combo} 🔥` : "";
+    botShown = Math.min(botH, score);
+    setBot();
+    const odd = score % 2 === 1;
+    cur = { x: odd ? W - nw : 0, w: nw, dir: odd ? -1 : 1, t: (cur.t + 1) % 6 };
+  }
+
+  function gameOver() {
+    over = true;
+    sCombo.textContent = "ร่วงแล้ว!";
+    for (let i = 1; i < stack.length; i++) {
+      const L = stack[i];
+      debris.push({ x: L.x, y: yOf(i), w: L.w, t: L.t, vx: (Math.random() - 0.5) * 140 + (L.x + L.w / 2 - W / 2) * 0.7, vy: -Math.random() * 160, r: 0, vr: (Math.random() - 0.5) * 3 });
+    }
+    stack.length = 1;
+    setBot();
+    botTimer = setTimeout(reveal, 1600);
+  }
+  function reveal() {
+    if (done) return;
+    if (botShown < botH) { botShown++; setBot(); botTimer = setTimeout(reveal, 110); }
+    else botTimer = setTimeout(() => { if (!done) { done = true; finishGame(score, botH, "ชั้น"); } }, 900);
+  }
+
+  function rr(x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  function layer(x, y, w, ty, pop) {
+    ctx.save();
+    if (pop > 0) {
+      ctx.translate(x + w / 2, y + LH); ctx.scale(1 + pop * 0.06, 1 - pop * 0.12); ctx.translate(-(x + w / 2), -(y + LH));
+    }
+    if (ty < 0) {
+      ctx.fillStyle = "#CDEFDD"; rr(x, y + 10, w, LH - 8, 12); ctx.fill();
+      ctx.strokeStyle = "#A8D9C0"; ctx.lineWidth = 2.5; ctx.stroke();
+    } else {
+      ctx.fillStyle = "#FFFFFF"; rr(x, y + LH * 0.36, w, LH * 0.64, 10); ctx.fill();
+      ctx.strokeStyle = "#EADFC2"; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = TOP[ty][0]; rr(x - 2, y + 1, w + 4, LH * 0.52, 10); ctx.fill();
+      ctx.fillStyle = TOP[ty][1]; rr(x + w * 0.14, y + 6, Math.max(6, w * 0.45), 4, 2); ctx.fill();
+      if (ty === 2) { ctx.fillStyle = "rgba(74,107,79,.9)"; ctx.fillRect(x + w * 0.42, y + 1, Math.max(6, w * 0.16), LH - 2); }
+      if (ty === 5) { ctx.fillStyle = "#FFD0B0"; for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.arc(x + w * (0.18 + k * 0.16), y + 10, 3, 0, 7); ctx.fill(); } }
+    }
+    ctx.restore();
+  }
+
+  function update(dt) {
+    cam += (Math.max(0, (stack.length - 7) * LH) - cam) * Math.min(1, dt * 6);
+    for (const L of stack) if (L.pop > 0) L.pop = Math.max(0, L.pop - dt * 4);
+    if (!over) {
+      const v = Math.min(520, CFG.v + CFG.inc * score);
+      cur.x += cur.dir * v * dt;
+      if (cur.x <= 0) { cur.x = 0; cur.dir = 1; }
+      if (cur.x + cur.w >= W) { cur.x = W - cur.w; cur.dir = -1; }
+    }
+    for (const d of debris) { d.vy += 1100 * dt; d.x += d.vx * dt; d.y += d.vy * dt; d.r += d.vr * dt; }
+    for (let i = debris.length - 1; i >= 0; i--) if (debris[i].y > H + 300) debris.splice(i, 1);
+    for (const p of parts) { p.vy += 500 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt * 1.6; }
+    for (let i = parts.length - 1; i >= 0; i--) if (parts[i].life <= 0) parts.splice(i, 1);
+    for (const f of floaters) { f.y -= 40 * dt; f.life -= dt * 1.1; }
+    for (let i = floaters.length - 1; i >= 0; i--) if (floaters[i].life <= 0) floaters.splice(i, 1);
+  }
+
+  function draw() {
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    const gy = yOf(0) + LH - 4;
+    if (gy < H) { ctx.fillStyle = "#FFF0B3"; ctx.fillRect(-10, gy, W + 20, H - gy + 10); }
+    const top = stack[stack.length - 1];
+    if (!over && top) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(230,190,60,.4)"; ctx.setLineDash([4, 6]); ctx.lineWidth = 2;
+      const ty = yOf(stack.length - 1);
+      ctx.beginPath(); ctx.moveTo(top.x, ty); ctx.lineTo(top.x, 0); ctx.moveTo(top.x + top.w, ty); ctx.lineTo(top.x + top.w, 0); ctx.stroke();
+      ctx.restore();
+    }
+    stack.forEach((L, i) => layer(L.x, yOf(i), L.w, L.t, L.pop));
+    if (!over) layer(cur.x, yOf(stack.length), cur.w, cur.t, 0);
+    for (const d of debris) {
+      ctx.save(); ctx.translate(d.x + d.w / 2, d.y + LH / 2); ctx.rotate(d.r);
+      layer(-d.w / 2, -LH / 2, d.w, d.t, 0); ctx.restore();
+    }
+    for (const p of parts) { ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, 7); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    ctx.textAlign = "center"; ctx.font = "600 22px Kanit, Prompt, sans-serif";
+    for (const f of floaters) { ctx.globalAlpha = Math.max(0, f.life); ctx.fillStyle = "#FF9A6B"; ctx.fillText(f.text, f.x, f.y); }
+    ctx.globalAlpha = 1;
+  }
+
+  let last = performance.now();
+  function frame(now) {
+    if (done) return;
+    const dt = Math.min(0.033, (now - last) / 1000);
+    last = now; t += dt;
+    update(dt); draw();
+    raf = requestAnimationFrame(frame);
+  }
+  raf = requestAnimationFrame(frame);
+
+  const onKey = (e) => { if (e.code === "Space" || e.code === "Enter") { e.preventDefault(); drop(); } };
+  const onPtr = (e) => { e.preventDefault(); drop(); };
+  const onBtn = () => drop();
+  window.addEventListener("keydown", onKey);
+  cv.addEventListener("pointerdown", onPtr);
+  $("#dropBtn").addEventListener("click", onBtn);
+  cleanup = () => {
+    done = true;
+    cancelAnimationFrame(raf);
+    clearTimeout(botTimer);
+    window.removeEventListener("keydown", onKey);
+    window.removeEventListener("resize", fit);
+    cv.removeEventListener("pointerdown", onPtr);
+    $("#dropBtn").removeEventListener("click", onBtn);
+  };
+}
+
+/* =====================  เกม: ทายคำไทย  ===================== */
+function startWord(game) {
+  show("s-word");
+  const items = game.items;
+  const P = {
+    easy: { limit: 32, a: 0.55, b: 0.45, know: 0.35, smart: false },
+    normal: { limit: 24, a: 0.35, b: 0.5, know: 0.55, smart: false },
+    hard: { limit: 17, a: 0.2, b: 0.45, know: 0.8, smart: true },
+  }[game.diff] || { limit: 24, a: 0.35, b: 0.5, know: 0.55, smart: false };
+  const seg = (() => {
+    try { const s = new Intl.Segmenter("th", { granularity: "grapheme" }); return (w) => [...s.segment(w)].map((x) => x.segment); }
+    catch { return (w) => Array.from(w); }
+  })();
+  const norm = (s) => s.normalize("NFC").replace(/[\s\u200b-\u200d\uFEFF]/g, "").toLowerCase();
+  const pool = items.map((i) => i.w);
+  const points = (el) => Math.round(100 + 50 * Math.max(0, 1 - el / P.limit));
+
+  const wScore = $("#wScore"), wBot = $("#wBotScore"), wBar = $("#wBar"), wHints = $("#wHints"), wSlots = $("#wSlots");
+  const wLine = $("#wBotLine"), wIn = $("#wIn"), wMsg = $("#wMsg"), wRound = $("#wRound");
+  let idx = -1, score = 0, bot = 0, R = null, nextT = 0, closed = false;
+  const used = new Set();
+  wScore.textContent = "0"; wBot.textContent = "0";
+
+  function setMsg(text, cls) { wMsg.textContent = text; wMsg.className = "msg " + (cls || ""); }
+
+  function nextRound() {
+    if (closed) return;
+    idx++;
+    if (idx >= items.length) { closed = true; return finishGame(score, bot, "แต้ม"); }
+    const it = items[idx];
+    const cl = seg(it.w);
+    R = {
+      it, cl, rev: new Set(), t0: performance.now(), over: false, hints: 0,
+      tb: P.limit * (P.a + Math.random() * P.b), knows: Math.random() < P.know, botDone: false, timer: 0,
+    };
+    wRound.textContent = `ข้อ ${idx + 1}/${items.length}`;
+    wHints.textContent = ""; wSlots.textContent = "";
+    cl.forEach(() => { const s = document.createElement("span"); s.className = "slot"; wSlots.appendChild(s); });
+    wLine.textContent = "🤖 กำลังอ่านโจทย์…";
+    setMsg("");
+    wIn.value = ""; wIn.disabled = false; $("#wGo").disabled = false; $("#wSkip").disabled = false;
+    wBar.style.width = "100%";
+    try { wIn.focus({ preventScroll: true }); } catch {}
+    R.timer = setInterval(tick, 100);
+    tick();
+  }
+
+  function candidates() {
+    return pool.filter((w) => {
+      if (P.smart && used.has(w)) return false;
+      const c = seg(w);
+      if (c.length !== R.cl.length) return false;
+      for (const i of R.rev) if (c[i] !== R.cl[i]) return false;
+      return true;
+    });
+  }
+
+  function reveal(i) {
+    R.rev.add(i);
+    const s = wSlots.children[i];
+    s.textContent = R.cl[i];
+    s.classList.add("on");
+  }
+
+  function tick() {
+    if (!R || R.over) return;
+    const el = (performance.now() - R.t0) / 1000, f = el / P.limit;
+    wBar.style.width = Math.max(0, (1 - f) * 100) + "%";
+    const needH = f >= 0.5 ? 3 : f >= 0.22 ? 2 : 1;
+    while (R.hints < Math.min(needH, R.it.h.length)) {
+      const d = document.createElement("div");
+      d.className = "hint";
+      const b = document.createElement("b"); b.textContent = "ใบ้ " + (R.hints + 1);
+      d.append(b, document.createTextNode(R.it.h[R.hints]));
+      wHints.appendChild(d);
+      R.hints++;
+    }
+    const needR = R.cl.length >= 4 ? (f >= 0.7 ? 2 : f >= 0.4 ? 1 : 0) : 0;
+    while (R.rev.size < needR) {
+      const free = R.cl.map((_, i) => i).filter((i) => !R.rev.has(i));
+      reveal(free[Math.floor(Math.random() * free.length)]);
+    }
+    if (!R.botDone) {
+      const c = candidates();
+      wLine.textContent = `🤖 ค้นจากรายการ… เหลือ ${c.length} คำที่เป็นไปได้`;
+      if (el >= R.tb) botGuess(c, el);
+    }
+    if (el >= P.limit) endRound(false);
+  }
+
+  function botGuess(c, el) {
+    R.botDone = true;
+    const guess = R.knows || !c.length ? R.it.w : c[Math.floor(Math.random() * c.length)];
+    if (guess === R.it.w) {
+      const pts = points(el);
+      bot += pts; wBot.textContent = bot;
+      wLine.textContent = `🤖 ตอบ “${guess}” ถูก! +${pts}`;
+    } else {
+      wLine.textContent = `🤖 ตอบ “${guess}” ผิด…`;
+    }
+  }
+
+  function endRound(won) {
+    if (!R || R.over) return;
+    R.over = true;
+    clearInterval(R.timer);
+    used.add(R.it.w);
+    R.cl.forEach((c, i) => {
+      const s = wSlots.children[i];
+      s.textContent = c; s.classList.add("on");
+      if (!won) s.classList.add("ans");
+    });
+    if (!won) setMsg("เฉลย: " + R.it.w, "bad");
+    wIn.disabled = true; $("#wGo").disabled = true; $("#wSkip").disabled = true;
+    nextT = setTimeout(nextRound, 1700);
+  }
+
+  function submit() {
+    if (!R || R.over) return;
+    const v = norm(wIn.value);
+    if (!v) return;
+    if (v === norm(R.it.w)) {
+      const pts = points((performance.now() - R.t0) / 1000);
+      score += pts; wScore.textContent = score;
+      wScore.classList.remove("bump"); void wScore.offsetWidth; wScore.classList.add("bump");
+      setMsg(`ถูกต้อง! +${pts} ✨`, "good");
+      endRound(true);
+    } else {
+      setMsg("ยังไม่ใช่น้า~", "bad");
+      wIn.classList.remove("shake"); void wIn.offsetWidth; wIn.classList.add("shake");
+      wIn.select();
+    }
+  }
+  const onGo = () => submit();
+  const onSkip = () => endRound(false);
+  const onKey = (e) => { if (e.key === "Enter") { e.preventDefault(); submit(); } };
+  $("#wGo").addEventListener("click", onGo);
+  $("#wSkip").addEventListener("click", onSkip);
+  wIn.addEventListener("keydown", onKey);
+  cleanup = () => {
+    closed = true;
+    if (R) clearInterval(R.timer);
+    clearTimeout(nextT);
+    $("#wGo").removeEventListener("click", onGo);
+    $("#wSkip").removeEventListener("click", onSkip);
+    wIn.removeEventListener("keydown", onKey);
+  };
+  nextRound();
+}
+
+/* ---------- เริ่ม ---------- */
+if (!ROOM) show("s-code");
+else {
+  $("#roomTag").textContent = "ห้อง " + ROOM;
+  if (!NAME) show("s-name");
+  else joinAndPoll();
+}
+})();
+</script>
+</body>
+</html>
